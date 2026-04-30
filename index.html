@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Puter.js AI 채팅</title>
+    <script src="https://js.puter.com/v2/"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        input { 
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button { 
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #output { 
+            min-height: 200px;
+            padding: 25px;
+            border-radius: 12px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            color: #333;
+            font-size: 15px;
+        }
+
+        .loading {
+            display: inline-block;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .placeholder {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>✨ 신산님의 AI 채팅 테스트</h2>
+        
+        <div class="input-group">
+            <input type="text" id="question" placeholder="질문을 입력하세요..." onkeypress="if(event.keyCode==13) testAI()">
+            <button onclick="testAI()">질문하기</button>
+        </div>
+
+        <div id="output" class="placeholder">결과가 여기 표시됩니다.</div>
+    </div>
+
+    <script>
+        async function testAI() {
+            const prompt = document.getElementById('question').value;
+            const outputDiv = document.getElementById('output');
+
+            if(!prompt) {
+                alert("질문을 입력해주세요!");
+                return;
+            }
+
+            outputDiv.className = 'loading';
+            outputDiv.innerText = "🤔 생각 중...";
+
+            try {
+                const response = await puter.ai.chat(prompt);
+                outputDiv.className = '';
+                outputDiv.innerText = response;
+            } catch (error) {
+                outputDiv.className = '';
+                outputDiv.innerText = "❌ 오류 발생: " + error;
+            }
+        }
+    </script>
+</body>
+</html>
