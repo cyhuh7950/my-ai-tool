@@ -2,15 +2,11 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Puter.js AI 채팅</title>
+    <title>Puter.js 운영 시스템</title>
     <script src="https://js.puter.com/v2/"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* 기존 스타일 유지 및 운영 상태 바 추가 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -20,7 +16,6 @@
             align-items: center;
             padding: 20px;
         }
-
         .container {
             background: white;
             border-radius: 20px;
@@ -28,119 +23,97 @@
             padding: 40px;
             max-width: 700px;
             width: 100%;
+            position: relative;
         }
-
-        h2 {
-            color: #667eea;
-            margin-bottom: 30px;
-            text-align: center;
-            font-size: 28px;
-            font-weight: 600;
+        /* 운영 상태 표시 바 */
+        .status-bar {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 20px;
         }
+        .status-online { background: #e6fffa; color: #38a169; }
+        .status-offline { background: #fff5f5; color: #e53e3e; cursor: pointer; }
 
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-        }
-
-        input { 
-            flex: 1;
-            padding: 15px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
+        h2 { color: #667eea; margin-bottom: 30px; text-align: center; font-size: 28px; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 25px; }
+        input { flex: 1; padding: 15px 20px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 16px; outline: none; }
+        input:focus { border-color: #667eea; }
         button { 
-            padding: 15px 30px;
+            padding: 15px 30px; 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;
         }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
         #output { 
-            min-height: 200px;
-            padding: 25px;
-            border-radius: 12px;
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            white-space: pre-wrap;
-            line-height: 1.6;
-            color: #333;
-            font-size: 15px;
+            min-height: 200px; padding: 25px; border-radius: 12px; 
+            background: #f8f9fa; border: 2px solid #e9ecef; 
+            white-space: pre-wrap; line-height: 1.6; color: #333;
         }
-
-        .loading {
-            display: inline-block;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .placeholder {
-            color: #999;
-            font-style: italic;
-        }
+        .loading { animation: pulse 1.5s infinite; color: #667eea; font-weight: bold; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>✨ 신산님의 AI 채팅 테스트</h2>
+        <!-- 시스템 상태 알람 -->
+        <div id="auth-status" class="status-bar status-offline" onclick="checkAuth()">인증 필요 (클릭)</div>
+        
+        <h2>✨ 신산님 운영 시스템</h2>
         
         <div class="input-group">
-            <input type="text" id="question" placeholder="질문을 입력하세요..." onkeypress="if(event.keyCode==13) testAI()">
-            <button onclick="testAI()">질문하기</button>
+            <input type="text" id="question" placeholder="시스템에 명령을 입력하세요..." onkeypress="if(event.keyCode==13) testAI()">
+            <button onclick="testAI()">실행</button>
         </div>
 
-        <div id="output" class="placeholder">결과가 여기 표시됩니다.</div>
+        <div id="output">시스템 대기 중...</div>
     </div>
 
     <script>
+        // 페이지 로드 시 인증 상태 자동 체크 (운영 흐름 최우선)
+        async function checkAuth() {
+            if (puter.auth.isSignedIn()) {
+                document.getElementById('auth-status').innerText = "● 시스템 연결됨";
+                document.getElementById('auth-status').className = "status-bar status-online";
+                return true;
+            } else {
+                document.getElementById('auth-status').innerText = "○ 인증 필요 (클릭)";
+                document.getElementById('auth-status').className = "status-bar status-offline";
+                // 클릭 시 로그인 유도
+                await puter.auth.signIn();
+                checkAuth();
+                return false;
+            }
+        }
+
+        // 초기 실행
+        checkAuth();
+
         async function testAI() {
             const prompt = document.getElementById('question').value;
             const outputDiv = document.getElementById('output');
 
-            if(!prompt) {
-                alert("질문을 입력해주세요!");
+            if(!prompt) return;
+
+            // 실행 전 인증 확인
+            const isReady = await checkAuth();
+            if(!isReady) {
+                alert("Puter 로그인이 필요합니다.");
                 return;
             }
 
-            outputDiv.className = 'loading';
-            outputDiv.innerText = "🤔 생각 중...";
+            outputDiv.innerHTML = "<span class='loading'>⚙️ 분석 중...</span>";
 
             try {
-                const response = await puter.ai.chat(prompt);
-                outputDiv.className = '';
+                // 단단한 설계를 위해 모델을 명시적으로 제안 (변경 가능)
+                const response = await puter.ai.chat(prompt, {model: 'gpt-4o'});
                 outputDiv.innerText = response;
             } catch (error) {
-                outputDiv.className = '';
-                outputDiv.innerText = "❌ 오류 발생: " + error;
+                // 이상 상태 감지 및 경고 출력
+                outputDiv.innerHTML = "<b style='color:red;'>⚠️ 시스템 오류 감지:</b><br>" + error.message;
+                console.error("System Error:", error);
             }
         }
     </script>
